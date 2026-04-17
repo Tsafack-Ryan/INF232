@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyseur de Machines | Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="sidebar">
+            <div class="logo">
+                <span class="logo-icon">💻</span>
+                <h1>MachineAnalyzer</h1>
+            </div>
+            <nav id="sidebar-nav">
+                <a href="#" data-view="dashboard" class="active"><span class="nav-icon">📊</span> Dashboard</a>
+                <a href="#" data-view="inventory"><span class="nav-icon">📦</span> Inventaire</a>
+            </nav>
+            <div class="sidebar-footer">
+                <p>v2.1.0</p>
+            </div>
+        </aside>
+
+        <!-- ===== MAIN CONTENT ===== -->
+        <main class="content">
+            <!-- HEADER -->
+            <header>
+                <div class="header-info">
+                    <h2 id="view-title">Tableau de bord</h2>
+                    <p class="date-today" id="currentDate"></p>
+                </div>
+            </header>
+
+            <!-- DASHBOARD VIEW -->
+            <div id="dashboard-view" class="view-content active">
+                <section class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Total Machines</span>
+                            <span class="stat-value" id="totalMachines">0</span>
+                        </div>
+                        <div class="stat-icon">💻</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Prix Moyen</span>
+                            <span class="stat-value" id="avgPrice">0 FCFA</span>
+                        </div>
+                        <div class="stat-icon">💰</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Top Marque</span>
+                            <span class="stat-value" id="topBrand">-</span>
+                        </div>
+                        <div class="stat-icon">🏆</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Marques distinctes</span>
+                            <span class="stat-value" id="uniqueBrands">0</span>
+                        </div>
+                        <div class="stat-icon">🏷️</div>
+                    </div>
+                </section>
+
+                <section class="charts-section">
+                    <div class="chart-container">
+                        <h3>Distribution par Marque</h3>
+                        <canvas id="brandChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Répartition par Gamme de Prix</h3>
+                        <canvas id="priceRangeChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Distribution RAM</h3>
+                        <canvas id="ramChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Prix moyen par Marque (FCFA)</h3>
+                        <canvas id="avgPriceChart"></canvas>
+                    </div>
+                </section>
+            </div>
+
+            <!-- INVENTORY VIEW -->
+            <div id="inventory-view" class="view-content hidden">
+                <section class="add-section card">
+                    <div class="section-header">
+                        <h3>➕ Ajouter une nouvelle machine</h3>
+                    </div>
+                    <form id="machineForm" class="horizontal-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="name">Nom du modèle</label>
+                                <input type="text" id="name" placeholder="Ex: HP ProBook 450 G9" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="brand">Marque</label>
+                                <select id="brand" class="select-light" required>
+                                    <option value="" disabled selected>Sélectionner</option>
+                                    <option value="Apple">Apple</option>
+                                    <option value="Dell">Dell</option>
+                                    <option value="HP">HP</option>
+                                    <option value="Lenovo">Lenovo</option>
+                                    <option value="Asus">Asus</option>
+                                    <option value="Acer">Acer</option>
+                                    <option value="Samsung">Samsung</option>
+                                    <option value="MSI">MSI</option>
+                                    <option value="Microsoft">Microsoft</option>
+                                    <option value="Dynabook">Dynabook</option>
+                                    <option value="Autre">Autre</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="cpu">Processeur</label>
+                                <input type="text" id="cpu" placeholder="Ex: Intel Core i5">
+                            </div>
+                            <div class="form-group">
+                                <label for="cpu_gen">Génération</label>
+                                <input type="text" id="cpu_gen" placeholder="Ex: 12ème gén">
+                            </div>
+                            <div class="form-group">
+                                <label for="cpu_speed">Vitesse (GHz)</label>
+                                <input type="number" id="cpu_speed" step="0.1" placeholder="3.5">
+                            </div>
+                            <div class="form-group">
+                                <label for="ram">RAM (Go)</label>
+                                <input type="number" id="ram" value="8">
+                            </div>
+                            <div class="form-group">
+                                <label for="storage">Stockage (Go)</label>
+                                <input type="number" id="storage" value="256">
+                            </div>
+                            <div class="form-group">
+                                <label for="gpu_memory">GPU dédié (Go)</label>
+                                <input type="number" id="gpu_memory" value="0" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="price">Prix (FCFA)</label>
+                                <input type="number" id="price" placeholder="350000" required>
+                            </div>
+                            <div class="form-group form-actions">
+                                <button type="submit" class="btn-primary" id="submitBtn">
+                                    <span class="btn-text">Enregistrer la machine</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="table-section card">
+                    <div class="section-header">
+                        <h3>📦 Inventaire des Machines</h3>
+                        <div class="search-box">
+                            <input type="text" id="searchInput" placeholder="🔍 Rechercher...">
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="machineTable">
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Marque</th>
+                                    <th>Processeur</th>
+                                    <th>Gén.</th>
+                                    <th>Vitesse</th>
+                                    <th>RAM</th>
+                                    <th>Stockage</th>
+                                    <th>GPU</th>
+                                    <th>Prix (FCFA)</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- ===== MODAL EDITION ===== -->
+    <div class="modal-overlay" id="editModalOverlay">
+        <div class="modal" id="editModal">
+            <div class="modal-header">
+                <h3>Modifier la machine</h3>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <form id="editForm" class="modal-form">
+                <input type="hidden" id="editId">
+                <div class="modal-grid">
+                    <div class="form-group">
+                        <label for="editName">Nom du modèle</label>
+                        <input type="text" id="editName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editBrand">Marque</label>
+                        <select id="editBrand" class="select-light" required>
+                            <option value="Apple">Apple</option>
+                            <option value="Dell">Dell</option>
+                            <option value="HP">HP</option>
+                            <option value="Lenovo">Lenovo</option>
+                            <option value="Asus">Asus</option>
+                            <option value="Acer">Acer</option>
+                            <option value="Samsung">Samsung</option>
+                            <option value="MSI">MSI</option>
+                            <option value="Microsoft">Microsoft</option>
+                            <option value="Dynabook">Dynabook</option>
+                            <option value="Autre">Autre</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCpu">Processeur</label>
+                        <input type="text" id="editCpu">
+                    </div>
+                    <div class="form-group">
+                        <label for="editCpuGen">Génération</label>
+                        <input type="text" id="editCpuGen">
+                    </div>
+                    <div class="form-group">
+                        <label for="editCpuSpeed">Vitesse (GHz)</label>
+                        <input type="number" id="editCpuSpeed" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="editRam">RAM (Go)</label>
+                        <input type="number" id="editRam">
+                    </div>
+                    <div class="form-group">
+                        <label for="editStorage">Stockage (Go)</label>
+                        <input type="number" id="editStorage">
+                    </div>
+                    <div class="form-group">
+                        <label for="editGpu">GPU dédié (Go)</label>
+                        <input type="number" id="editGpu" min="0">
+                    </div>
+                    <div class="form-group form-group-full">
+                        <label for="editPrice">Prix (FCFA)</label>
+                        <input type="number" id="editPrice" required>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="cancelEdit">Annuler</button>
+                    <button type="submit" class="btn-primary" id="saveEdit">
+                        <span class="btn-text">Enregistrer les modifications</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== MODAL CONFIRMATION SUPPRESSION ===== -->
+    <div class="modal-overlay" id="deleteModalOverlay">
+        <div class="modal modal-sm">
+            <div class="modal-header">
+                <h3>Confirmer la suppression</h3>
+                <button class="modal-close" id="closeDeleteModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="delete-icon">🗑️</div>
+                <p>Voulez-vous vraiment supprimer <strong id="deleteMachineName"></strong> ?</p>
+                <p class="text-muted">Cette action est irréversible.</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="cancelDelete">Annuler</button>
+                <button class="btn-danger" id="confirmDelete">Supprimer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div class="toast" id="toast"></div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

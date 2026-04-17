@@ -1,0 +1,21 @@
+/albumlist.csv
+/csv1_test.py
+/csv_file.py
+/projet_232
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+ENV/
+
+# Database (Optionnel, mais stocké pour le projet INF232 si besoin)
+# *.db
+
+# Environnement
+.env
+.vscode/
+.idea/
