@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request, jsonify
+import io
+import csv
+from flask import Flask, render_template, request, jsonify, send_file, make_response
 from flask_cors import CORS
 from database import (
     init_db, add_machine, get_all_machines, get_stats,
@@ -29,7 +31,11 @@ def create_machine():
             int(data.get('ram', 0) or 0),
             int(data.get('storage', 0) or 0),
             int(data.get('gpu_memory', 0) or 0),
-            float(data['price'])
+            float(data['price']),
+            data.get('status', 'En stock'),
+            data.get('serial_number', ''),
+            data.get('location', ''),
+            data.get('notes', '')
         )
         return jsonify({"message": "Machine ajoutee avec succes"}), 201
     except Exception as e:
@@ -57,7 +63,11 @@ def modify_machine(machine_id):
             int(data.get('ram', 0) or 0),
             int(data.get('storage', 0) or 0),
             int(data.get('gpu_memory', 0) or 0),
-            float(data['price'])
+            float(data['price']),
+            data.get('status', 'En stock'),
+            data.get('serial_number', ''),
+            data.get('location', ''),
+            data.get('notes', '')
         )
         return jsonify({"message": "Machine mise a jour avec succes"})
     except Exception as e:
@@ -74,6 +84,24 @@ def remove_machine(machine_id):
 @app.route('/api/stats', methods=['GET'])
 def stats():
     return jsonify(get_stats())
+
+@app.route('/api/export', methods=['GET'])
+def export_csv():
+    machines = get_all_machines()
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=[
+        "id", "name", "brand", "cpu", "cpu_gen", "cpu_speed", 
+        "ram", "storage", "gpu_memory", "price", "status", 
+        "serial_number", "location", "notes", "created_at"
+    ])
+    writer.writeheader()
+    for m in machines:
+        writer.writerow(m)
+    
+    response = make_response(output.getvalue())
+    response.headers["Content-Disposition"] = "attachment; filename=inventaire_machines.csv"
+    response.headers["Content-type"] = "text/csv"
+    return response
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

@@ -22,11 +22,24 @@ def init_db():
             storage INTEGER,
             gpu_memory INTEGER,
             price REAL NOT NULL,
+            status TEXT DEFAULT 'En stock',
+            serial_number TEXT,
+            location TEXT,
+            notes TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
-    # Migrate: add new columns if they don't exist yet (for existing DBs)
-    for col, coltype in [('cpu_gen', 'TEXT'), ('cpu_speed', 'REAL'), ('gpu_memory', 'INTEGER')]:
+    # Migrate: add new columns if they don't exist yet
+    columns_to_add = [
+        ('cpu_gen', 'TEXT'), 
+        ('cpu_speed', 'REAL'), 
+        ('gpu_memory', 'INTEGER'),
+        ('status', 'TEXT DEFAULT "En stock"'),
+        ('serial_number', 'TEXT'),
+        ('location', 'TEXT'),
+        ('notes', 'TEXT')
+    ]
+    for col, coltype in columns_to_add:
         try:
             conn.execute(f'ALTER TABLE machines ADD COLUMN {col} {coltype}')
         except Exception:
@@ -34,12 +47,12 @@ def init_db():
     conn.commit()
     conn.close()
 
-def add_machine(name, brand, cpu, cpu_gen, cpu_speed, ram, storage, gpu_memory, price):
+def add_machine(name, brand, cpu, cpu_gen, cpu_speed, ram, storage, gpu_memory, price, status='En stock', serial_number='', location='', notes=''):
     conn = get_db_connection()
     conn.execute('''
-        INSERT INTO machines (name, brand, cpu, cpu_gen, cpu_speed, ram, storage, gpu_memory, price)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (name, brand, cpu, cpu_gen, cpu_speed, ram, storage, gpu_memory, price))
+        INSERT INTO machines (name, brand, cpu, cpu_gen, cpu_speed, ram, storage, gpu_memory, price, status, serial_number, location, notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (name, brand, cpu, cpu_gen, cpu_speed, ram, storage, gpu_memory, price, status, serial_number, location, notes))
     conn.commit()
     conn.close()
 
@@ -61,13 +74,13 @@ def delete_machine(machine_id):
     conn.commit()
     conn.close()
 
-def update_machine(machine_id, name, brand, cpu, cpu_gen, cpu_speed, ram, storage, gpu_memory, price):
+def update_machine(machine_id, name, brand, cpu, cpu_gen, cpu_speed, ram, storage, gpu_memory, price, status, serial_number, location, notes):
     conn = get_db_connection()
     conn.execute('''
         UPDATE machines
-        SET name=?, brand=?, cpu=?, cpu_gen=?, cpu_speed=?, ram=?, storage=?, gpu_memory=?, price=?
+        SET name=?, brand=?, cpu=?, cpu_gen=?, cpu_speed=?, ram=?, storage=?, gpu_memory=?, price=?, status=?, serial_number=?, location=?, notes=?
         WHERE id=?
-    ''', (name, brand, cpu, cpu_gen, cpu_speed, ram, storage, gpu_memory, price, machine_id))
+    ''', (name, brand, cpu, cpu_gen, cpu_speed, ram, storage, gpu_memory, price, status, serial_number, location, notes, machine_id))
     conn.commit()
     conn.close()
 
@@ -103,11 +116,19 @@ def get_stats():
         ORDER BY ram
     ''').fetchall()
 
+    # stats by status
+    status_stats = conn.execute('''
+        SELECT status, COUNT(*) as count
+        FROM machines
+        GROUP BY status
+    ''').fetchall()
+
     conn.close()
     return {
         "brands": [dict(row) for row in brand_stats],
         "price_ranges": [dict(row) for row in price_stats],
-        "ram_distribution": [dict(row) for row in ram_stats]
+        "ram_distribution": [dict(row) for row in ram_stats],
+        "status_distribution": [dict(row) for row in status_stats]
     }
 
 def bulk_insert(machines_list):
