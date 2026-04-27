@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STARTECH — Catalogue</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body class="client-body">
+
+<!-- ══ TOPBAR ══════════════════════════════════════════════════════ -->
+<header class="topbar">
+    <div class="topbar-brand">
+        <div class="brand-logo-sm">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="ST"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <span class="logo-fb" style="display:none">ST</span>
+        </div>
+        <div>
+            <span class="tb-name">STARTECH</span>
+            <span class="tb-sub">Espace Client</span>
+        </div>
+    </div>
+
+    <nav class="topnav">
+        <button class="nav-btn active" data-view="storefront">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Catalogue
+        </button>
+        <button class="nav-btn" data-view="market">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Analyse du Marché
+        </button>
+        <button class="nav-btn" data-view="about">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            À propos
+        </button>
+    </nav>
+
+    <div class="topbar-right">
+        <span class="user-chip">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            {{ username }}
+        </span>
+        <button class="btn-logout" id="logoutBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Déconnexion
+        </button>
+    </div>
+</header>
+
+<!-- ══ MAIN ════════════════════════════════════════════════════════ -->
+<main class="client-main">
+
+    <!-- ── VIEW: STOREFRONT ──────────────────────────────────────── -->
+    <section id="view-storefront" class="view active">
+        <div class="store-hero">
+            <div class="hero-text">
+                <p class="eyebrow">Marché Informatique · Cameroun · Prix FCFA</p>
+                <h1>Trouvez votre<br><span class="accent">machine idéale</span></h1>
+                <p class="hero-desc">Catalogue complet d'ordinateurs portables avec données techniques et prix du marché local.</p>
+                <div class="hero-search">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" id="storeSearch" placeholder="Nom, marque, CPU…" autocomplete="off">
+                </div>
+            </div>
+            <div class="hero-kpis" id="heroKpis">
+                <div class="hkpi"><span class="hkpi-val" id="hTotal">—</span><span class="hkpi-lbl">Modèles</span></div>
+                <div class="hkpi"><span class="hkpi-val" id="hBrands">—</span><span class="hkpi-lbl">Marques</span></div>
+                <div class="hkpi"><span class="hkpi-val" id="hAvg">—</span><span class="hkpi-lbl">Prix moyen</span></div>
+            </div>
+        </div>
+
+        <div class="brand-filter" id="brandFilter">
+            <button class="filt active" data-brand="all">Tous</button>
+        </div>
+
+        <div class="cards-grid" id="cardsGrid"></div>
+    </section>
+
+    <!-- ── VIEW: MARKET ANALYSIS ─────────────────────────────────── -->
+    <section id="view-market" class="view hidden">
+        <div class="page-hdr">
+            <div>
+                <h2 class="page-title">Analyse du Marché</h2>
+                <p class="page-sub">Régressions statistiques · Prix en FCFA · Données marché camerounais</p>
+            </div>
+        </div>
+
+        <!-- Multiple regression summary -->
+        <div class="model-banner" id="modelBanner">
+            <div class="model-formula" id="modelFormula">Chargement du modèle…</div>
+            <div class="model-r2">
+                <span>R² multiple =</span>
+                <strong id="modelR2">—</strong>
+                <span id="modelR2Interp"></span>
+            </div>
+        </div>
+
+        <!-- Predictor -->
+        <div class="predictor-wrap">
+            <div class="predictor-form">
+                <p class="predictor-label">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    Estimer mon budget
+                </p>
+                <h3>Configurez votre machine</h3>
+                <p class="pred-sub">Le modèle de régression multiple prédit le prix attendu.</p>
+                <div class="pred-grid">
+                    <div class="pred-field">
+                        <label>RAM (Go)</label>
+                        <div class="pred-opts" id="predRam">
+                            <button class="popt" data-val="4">4</button>
+                            <button class="popt active" data-val="8">8</button>
+                            <button class="popt" data-val="16">16</button>
+                            <button class="popt" data-val="32">32</button>
+                        </div>
+                        <input class="pred-input" type="number" id="inRam" value="8" min="1" placeholder="Go">
+                    </div>
+                    <div class="pred-field">
+                        <label>Stockage (Go)</label>
+                        <div class="pred-opts" id="predSto">
+                            <button class="popt" data-val="256">256</button>
+                            <button class="popt active" data-val="512">512</button>
+                            <button class="popt" data-val="1024">1024</button>
+                        </div>
+                        <input class="pred-input" type="number" id="inSto" value="512" min="0" placeholder="Go">
+                    </div>
+                    <div class="pred-field">
+                        <label>GPU dédié (Go)</label>
+                        <div class="pred-opts" id="predGpu">
+                            <button class="popt active" data-val="0">0</button>
+                            <button class="popt" data-val="4">4</button>
+                            <button class="popt" data-val="6">6</button>
+                            <button class="popt" data-val="8">8</button>
+                        </div>
+                        <input class="pred-input" type="number" id="inGpu" value="0" min="0" placeholder="Go">
+                    </div>
+                    <div class="pred-field">
+                        <label>Génération CPU</label>
+                        <div class="pred-opts" id="predGen">
+                            <button class="popt" data-val="10">10</button>
+                            <button class="popt" data-val="11">11</button>
+                            <button class="popt active" data-val="12">12</button>
+                            <button class="popt" data-val="13">13</button>
+                        </div>
+                        <input class="pred-input" type="number" id="inGen" value="12" min="1" placeholder="ième gén.">
+                    </div>
+                </div>
+                <button class="btn-predict" id="btnPredict">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="13 2 13 9 20 9"/><path d="M21 2l-9 9"/><path d="M3 15v4a2 2 0 0 0 2 2h4"/><path d="M13 22l9-9-4-4"/></svg>
+                    Prédire le prix
+                </button>
+            </div>
+            <div class="predictor-result" id="predResult">
+                <div class="pred-placeholder">
+                    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.25"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                    <p>Configurez votre machine<br>puis cliquez sur Prédire</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4 simple regressions -->
+        <div class="section-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/></svg>
+            Régressions simples — une variable à la fois
+        </div>
+        <div class="reg-grid">
+            <div class="reg-card" id="regRam">
+                <div class="reg-card-hdr">
+                    <h4>Prix vs RAM</h4>
+                    <span class="r2-pill" id="r2Ram">R² = —</span>
+                </div>
+                <div class="reg-chart-wrap"><canvas id="chartRam"></canvas></div>
+            </div>
+            <div class="reg-card" id="regSto">
+                <div class="reg-card-hdr">
+                    <h4>Prix vs Stockage</h4>
+                    <span class="r2-pill" id="r2Sto">R² = —</span>
+                </div>
+                <div class="reg-chart-wrap"><canvas id="chartSto"></canvas></div>
+            </div>
+            <div class="reg-card" id="regGpu">
+                <div class="reg-card-hdr">
+                    <h4>Prix vs GPU</h4>
+                    <span class="r2-pill" id="r2Gpu">R² = —</span>
+                </div>
+                <div class="reg-chart-wrap"><canvas id="chartGpu"></canvas></div>
+            </div>
+            <div class="reg-card" id="regGen">
+                <div class="reg-card-hdr">
+                    <h4>Prix vs Génération CPU</h4>
+                    <span class="r2-pill" id="r2Gen">R² = —</span>
+                </div>
+                <div class="reg-chart-wrap"><canvas id="chartGen"></canvas></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── VIEW: ABOUT ───────────────────────────────────────────── -->
+    <section id="view-about" class="view hidden">
+        <div class="about-wrap">
+            <div class="about-top">
+                <div class="about-logo">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="STARTECH"
+                         onerror="this.style.display='none'">
+                </div>
+                <div>
+                    <h2 class="about-name">STARTECH</h2>
+                    <p class="about-ver">Version 3.0 — INF232 Edition</p>
+                </div>
+            </div>
+            <div class="about-quote">
+                Développé dans le cadre de l'UE INF232 — STATISTIQUE DESCRIPTIVE, PYTHON ~ YAOUNDE CAMEROUN
+            </div>
+            <div class="about-cards">
+                <div class="ac"><div class="ac-icon" style="background:rgba(37,99,235,.1)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><h4>Catalogue Client</h4><p>Cartes produit inspirées BackMarket avec caractéristiques techniques et photos.</p></div>
+                <div class="ac"><div class="ac-icon" style="background:rgba(16,185,129,.1)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div><h4>Régression Multiple</h4><p>Modèle Prix = f(RAM, Stockage, GPU, Génération) calculé avec NumPy lstsq.</p></div>
+                <div class="ac"><div class="ac-icon" style="background:rgba(245,158,11,.1)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div><h4>Export Excel</h4><p>Génération de fichiers .xlsx avec mise en forme via Pandas et openpyxl.</p></div>
+                <div class="ac"><div class="ac-icon" style="background:rgba(99,102,241,.1)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h4>Authentification</h4><p>Sessions Flask sécurisées, mots de passe hachés (Werkzeug), rôles admin/client.</p></div>
+            </div>
+            <div class="about-stack">
+                <p class="stack-lbl">Stack technique</p>
+                <div class="stack-tags">
+                    <span>Python 3</span><span>Flask</span><span>NumPy</span><span>Pandas</span>
+                    <span>SQLite</span><span>Werkzeug</span><span>Chart.js 4</span><span>openpyxl</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- ══ IMAGE MODAL ════════════════════════════════════════════════ -->
+<div class="img-modal-overlay" id="imgModalOverlay">
+    <div class="img-modal">
+        <button class="img-modal-close" id="imgModalClose">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <img id="imgModalSrc" src="" alt="">
+        <div class="img-modal-caption" id="imgModalCaption"></div>
+    </div>
+</div>
+
+<!-- ══ TOAST ══════════════════════════════════════════════════════ -->
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<script src="{{ url_for('static', filename='js/client.js') }}"></script>
+</body>
+</html>
